@@ -117,10 +117,9 @@ jobs:
   notify-via-slack:
     executor: slack-executor
     steps:
-      - slack/notify:
-          message: "${CIRCLE_BRANCH} branch deployment to aws s3 and cloudfront is complete."
-          webhook: $SLACK_WEBHOOK
       - slack/status:
+          success_message: ':ok:\nBranch：$CIRCLE_BRANCH のデプロイが完了しました\n User：$CIRCLE_USERNAME'
+          failure_message: ':ng:\nBranch：$CIRCLE_BRANCH のデプロイが失敗しました\n User：$CIRCLE_USERNAME'
           webhook: $SLACK_WEBHOOK
 
 workflows:
