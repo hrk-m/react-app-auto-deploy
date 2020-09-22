@@ -170,23 +170,7 @@ aliases:
       paths:
         - node_modules
       key: app-{{ checksum "package.json" }}
-  - &install-aws-cli
-    run:
-      name: Installing AWS CLI
-      working_directory: /
-      command: |
-        sudo apt-get -y -qq update
-        sudo apt-get install -y awscli
-        sudo apt-get install -y python-pip python-dev build-essential
-  - &build-project
-    run:
-      name: Build Project
-      command: |
-        npm install
-        npm run build
-        cd build
-        zip ../build.zip -r * .[^.]*
-        echo "Build successful"
+
 jobs:
   build:
     executor: app-executor
@@ -217,45 +201,6 @@ jobs:
           name: Run prettier check
           command: npm run prettier:check
 
-  deploy-to-aws-s3:
-    executor: app-executor
-    steps:
-      - checkout
-      - *show-current-branch-name
-      - *install-aws-cli
-      - *build-project
-      - run:
-          name: Deploy to AWS S3
-          command: |
-            if [ "${CIRCLE_BRANCH}" == "master" ]
-            then
-              aws --region ${AWS_REGION} s3 sync ~/repo/build s3://${AWS_BUCKET_PRODUCTION} --delete
-            elif [ "${CIRCLE_BRANCH}" == "staging" ]
-            then
-              aws --region ${AWS_REGION} s3 sync ~/repo/build s3://${AWS_BUCKET_STAGING} --delete
-            else
-              aws --region ${AWS_REGION} s3 sync ~/repo/build s3://${AWS_DEV_BUCKET} --delete
-            fi
-  deploy-to-aws-cloudfront:
-    executor: app-executor
-    steps:
-      - checkout
-      - *show-current-branch-name
-      - *install-aws-cli
-      - *build-project
-      - run:
-          name: Deploy to AWS Cloudfront
-          command: |
-            aws configure set preview.cloudfront true
-            if [ "${CIRCLE_BRANCH}" == "master" ]
-            then
-              aws cloudfront create-invalidation --distribution-id ${PRODUCTION_DISTRIBUTION_ID} --paths /\*
-            elif [ "${CIRCLE_BRANCH}" == "staging" ]
-            then
-              aws cloudfront create-invalidation --distribution-id ${STAGING_DISTRIBUTION_ID} --paths /\*
-            else
-              aws cloudfront create-invalidation --distribution-id ${DEV_DISTRIBUTION_ID} --paths /\*
-            fi
 workflows:
   build_and_deploy:
     jobs:
@@ -263,38 +208,9 @@ workflows:
       - linting:
           requires:
             - build
-          filters:
-            branches:
-              only:
-                - develop
-                - staging
-                - master
       - prettier:
           requires:
             - build
-          filters:
-            branches:
-              only:
-                - develop
-                - staging
-                - master
-      - deploy-to-aws-s3:
-          requires:
-            - linting
-            - prettier
-          filters:
-            branches:
-              only:
-                - develop
-                - staging
-                - master
-      - deploy-to-aws-cloudfront:
-          requires:
-            - deploy-to-aws-s3
-          filters:
-            branches:
-              only:
-                - develop
-                - staging
-                - master
 ```
+
+- 個人で試した config.yml ファイル([diff](https://github.com/hrk-m/react-app-auto-deploy/blob/develop/.circleci/config.yml))
