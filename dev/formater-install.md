@@ -74,7 +74,7 @@ file: .eslintrc.json
 
 # Prettier
 
-1.  prettierのインストール
+1.  prettier のインストール
 
 ```bash
 yarn add -D prettier
@@ -83,6 +83,7 @@ yarn add -D prettier
 2. .prettierrc.json ファイルを作成、prettier で設定を記載する
 
 - 例) .prettierrc.json
+
 ```json
 {
   // 複数行の場合、可能な限り末尾のコンマを出力: none
@@ -104,7 +105,9 @@ yarn add -D prettier
 ```
 
 ※追伸
+
 - .editorconfig もあると、エディターのコーディングスタイルも統一できる
+
 ```.editorconfig
 # EditorConfig is awesome: https://EditorConfig.org
 # EditorConfig helps developers define and maintain consistent
@@ -135,7 +138,7 @@ max_line_length = off
 
 ```
 
-# デプロイ時にESLint とPrettier の検証を入れる
+# デプロイ時に ESLint と Prettier の検証を入れる
 
 `.circleci/config.yml`の設定<br>
 <img src="img/ci-03.png" width='600px'><br>
