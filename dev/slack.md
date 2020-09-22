@@ -90,3 +90,7 @@ workflows:
                 - staging
                 - master
 ```
+
+# 5. slack に通知が来ているのを確認
+
+<img src='img/slack-09.png' width='600px'><br>
