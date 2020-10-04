@@ -1,6 +1,4 @@
-# Readme.md
-
-[React](https://create-react-app.dev/) を使い運用で使われるとそうていする開発環境を整えていく
+# [React](https://create-react-app.dev/) を使い運用で使われると想定する開発環境を整えていく
 
 # 使用する技術
 
@@ -11,7 +9,7 @@ React, Redux, GitHub, CircleCI, AWS S3, Cloudfront
 
 GitHub にプロジェクトを作成済の段階から始める
 
-[1. デフォルトブランチを設定する](#1-デフォルトブランチを設定する)
+[1. デプロイ方法やブランチ設定](#1-デプロイ方法やブランチ設定)
 
 [2. CI/CD の導入](#2.-CICD-の導入)
 
@@ -21,28 +19,41 @@ GitHub にプロジェクトを作成済の段階から始める
 
 [5. AWS Cloudfront ディストリビューションを追加する](#5.-AWS-Cloudfront-ディストリビューションを追加する)
 
-# 1. デフォルトブランチを設定する
+# 1. デプロイ方法やブランチ設定
 
 ## ブランチを複数用意
 
-※ [doc-デフォルトブランチを設定方法](https://docs.github.com/ja/github/administering-a-repository/setting-the-default-branch)
+#### ステージング(デフォルトブランチ )
 
-#### 開発ブランチ　(デフォルトブランチ )
+- `release`ブランチ
+- リリースする前にリリースバージョンであったり、PRD にリリースする前に承認を得るためのブランチとする
+- [doc-デフォルトブランチを設定方法](https://docs.github.com/ja/github/administering-a-repository/setting-the-default-branch)
+- リリースする前に承認設定 (開発フローや Git になれてない人がいるので master ブランチへの直プッシュ保護はした方がいい) [[doc-保護されたブランチを設定する方法](https://docs.github.com/ja/github/administering-a-repository/configuring-protected-branches)]
 
-- `develop` ブランチを基準とし開発専用とする
-
-#### ステージング
-
-- `staging`ブランチをテスト専用のブランチ
-
-#### 本番
+#### 本番(PRD)
 
 - `master`ブランチを本番専用ブランチ
 
-※ 必要があれば`ブランチ保護ルールも設定` (複数人で開発する場合は設定した方が良い )<br>
-[doc-保護されたブランチを設定する方法](https://docs.github.com/ja/github/administering-a-repository/configuring-protected-branches)
+### 開発からデプロイの運用の仕方
+
+- 各開発者は個人ブランチで開発する
+- 開発者は個人ブランチの内容が OK だったら release ブランチにマージする
+- リリースする人は Release ブランチから master ブランチへの PR を作る。これにリリースバージョンをつけたりする
+- PR をマージするとリリースワークフロー(例:CodePipeline)が起動する
+- 最初は STG 環境にデプロイし動作確認する
+- STG 環境が OK だったら承認して PRD へのデプロイに進む。CodePipeline の場合は「承認」というプロセスをワークフローに含めることができる。
 
 # 2. CI/CD の導入
+
+※ 今回は CI/CD のデプロイ手法で構築していくが、以下の観点で考える必要もある
+
+```
+## CircleCI を使う？ AWS CodePipeline を使う？
+「AWS にはない CircleCI の ○○ 機能が必須」という理由が特になければ、
+AWS のプロダクトで固めちゃう というのもナイスな方針な 1 つ。
+コントロールする対象が増えたぶんだけ、管理コストが増えてしまう。
+コントロールする対象はできるだけ増やさない というのがインフラ管理の原則の 1 つといえます。
+```
 
 [doc-CircleCI のセットアップ方法](https://circleci.com/docs/2.0/getting-started/#section=getting-started)
 
@@ -83,7 +94,7 @@ workflows:
 
    ※ AWS アクセスの種類を選択 (プログラムによるアクセスをチェック )
 
-   ※ policy を追加 (AdministratorAccess) ← 　ログインするのに必要な権限をつけた方がいい
+   ※ policy を追加 (AmazonS3FullAccess, CloudFrontFullAccess) デプロイに必要な権限のみをつける
 
 2. 取得したアクセスキー ID・シークレットキーアクセスキーを CI/CD に環境変数を登録する
 
